@@ -126,8 +126,8 @@ module DatabaseCleaner
     end
 
     def orm_strategy(strategy)
-      require "database_cleaner/#{orm.to_s}/#{strategy.to_s}"
-      orm_module.const_get(strategy.to_s.capitalize)
+      require "database_cleaner/#{orm}/#{strategy}"
+      orm_module.const_get(camelize(strategy))
     rescue LoadError
       if orm_module.respond_to? :available_strategies
         raise UnknownStrategySpecified, "The '#{strategy}' strategy does not exist for the #{orm} ORM!  Available strategies: #{orm_module.available_strategies.join(', ')}"
@@ -150,6 +150,13 @@ module DatabaseCleaner
       when :mongo_mapper, :mongoid, :couch_potato, :moped, :ohm, :redis
         self.strategy = :truncation
       end
+    end
+
+    private
+
+    def camelize(term)
+      string = term.to_s.sub(/^[a-z\d]*/) { $&.capitalize }
+      string.gsub(/(?:_|(\/))([a-z\d]*)/) { "#{$1}#{$2.capitalize}" }.gsub('/', '::')
     end
   end
 end
